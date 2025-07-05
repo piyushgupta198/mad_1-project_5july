@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search</title>
+</head>
+{% include 'index.html' %}
+
+<body>
+
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-6">
+                <form class="container-fluid" action="/admin_search" method="post">
+                    <div class="input-group col-6 me-3">
+
+                        <select class="btn btn-outline-secondary" name="search_By" required>
+
+                            <option value="user_id">User ID</option>
+                            <option value="location">Location</option>
+
+                        </select>
+
+                        <!-- search text -->
+                        <input type="text" class="form-control"
+                            placeholder="Search string…" name="searchBy" required>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+</body>
+
+</html>

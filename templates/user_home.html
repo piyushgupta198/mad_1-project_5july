@@ -34,21 +34,18 @@
                         <td>{{ reservation.parking_timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
                         <td>
                             {% if reservation.leaving_timestamp is none %}
-                                <form method="POST"
-                                    action="">
-                                    <button onclick="window.location.href='{/release_parking/}{{ reservation.id }}'" class="btn btn-danger btn-sm">
-                                        Release
-                                    </button>
+                                <form method="get" action="release_parking/{{ reservation.id }}" >
+                                    <button class="btn btn-danger btn-sm">Release</button>
                                 </form>
                             {% else %}
-                                <button class="btn btn-secondary btn-sm" disabled>Parked</button>
+                                <button class="btn btn-secondary btn-sm">Parked</button>
                             {% endif %}
                         </td>
                     </tr>
                 {% endfor %}
             </tbody>
         </table>
-
+    </div>
 
     {%endblock%} 
 </body>

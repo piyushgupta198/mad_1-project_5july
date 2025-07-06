@@ -3,6 +3,10 @@ from app import app
 from flask import render_template, request, flash, redirect, url_for, session
 from sqlalchemy import func ,or_, and_
 from controllers.models import *
+from datetime import datetime
+import math
+from zoneinfo import ZoneInfo
+
 
 @app.route('/')
 def home():
@@ -253,25 +257,39 @@ def book_parking(parking_lot_id):
         
         spot.status = 'O'
 
-        reservation = Reservation(spot_id=spot.spot, user_id=user_id, parking_cost=float(parking_lot.price), vehicle_number=vehicle_number, parking_timestamp=datetime.utcnow())
+        reservation = Reservation(spot_id=spot.spot, user_id=user_id, parking_cost=float(parking_lot.price), vehicle_number=vehicle_number, parking_timestamp=datetime.now(ZoneInfo("Asia/Kolkata")))
         db.session.add(reservation)
         db.session.commit()
         flash('Parking spot booked successfully!', 'success')
         return redirect(url_for('user_home'))
     return render_template('book_parking.html', parking_lot=parking_lot, spot=spot)
 
-@app.route('/release_parking/<int:reservation_id>', methods=['POST'])
+@app.route('/release_parking/<int:reservation_id>', methods=['GET', 'POST'])
 def release_parking(reservation_id):
-    reservation = Reservation.query.get_or_404(reservation_id)
     
-    if reservation.leaving_timestamp:
-        flash('Parking spot already released.', 'error')
+    reservation = Reservation.query.get_or_404(reservation_id)
+    parking_time = reservation.parking_timestamp.strftime('%Y-%m-%d %H:%M')
+    release_time = datetime.now(ZoneInfo("Asia/Kolkata")).strftime('%Y-%m-%d %H:%M')
+    fmt = "%Y-%m-%d %H:%M"
+    start_dt = datetime.strptime(parking_time, fmt)
+    end_dt   = datetime.strptime(release_time, fmt)
+
+    delta = end_dt - start_dt                 
+    hours = delta.total_seconds() / 3600      
+    cost  = hours * 50
+    cost = math.ceil(cost)
+
+    if request.method=='POST':
+        print('post')
+        reservation.total_cost = cost
+        reservation.leaving_timestamp = end_dt
+        db.session.commit()
+        spot = ParkingSpot.query.filter_by(spot=reservation.spot_id).first()
+        if spot:
+            spot.status = 'A'
+            db.session.commit()
+        flash('Parking released successfully!', 'success')
         return redirect(url_for('user_home'))
 
-    reservation.leaving_timestamp = datetime.utcnow()
-    spot = ParkingSpot.query.get(reservation.spot_id)
-    if spot:
-        spot.status = 'A'
-    db.session.commit()
-    flash('Parking spot released successfully!', 'success')
-    return redirect(url_for('user_home'))
+
+    return render_template('release_parking.html', reservation=reservation,reservation_id=reservation_id,t=release_time ,cost=cost)

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Release Parking</title>
+</head>
+
+{% extends 'index.html' %}
+<body>
+
+<h1>Book Parking Spot</h1>
+
+    {% block content %}
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-6 m-3">
+                <h1>Book {{ reservation.spot_id }} Parking</h1>
+
+
+                <form method="post" action="/release_parking/{{ reservation_id }}">
+                    <div class="mb-1.5">
+                        <label for="spot" class="form-label">Spot</label>
+                        <input type="text" class="form-control" id="spot" name="spot" value="{{ reservation.spot_id }}" required>
+                    </div>
+                    <div class="mb-1.5">
+                        <label for="vehicle_number" class="form-label">Vehicle Number</label>
+                        <input type="text" class="form-control" id="vehicle_number" name="vehicle_number" value="{{ reservation.vehicle_number }}" required>
+                    </div>
+                    <div class="mb-1.5">
+                        <label for="parking_time" class="form-label">Parking Time</label>
+                        <input type="text" class="form-control" id="parking_time" name="parking_time" value="{{ reservation.parking_timestamp.strftime('%Y-%m-%d %H:%M') }}" required>
+                    </div>
+                    <div class="mb-1.5">
+                        <label for="release_time" class="form-label">Release Time</label>
+                        <input type="text" class="form-control" id="release_time" name="release_time" value="{{ t }}" required>
+                    </div>
+
+                    <div class="mb-1.5">
+                        <label for="total_cost" class="form-label">Total Cost</label>
+                        <input type="text" class="form-control" id="total_cost" name="total_cost" value="{{ cost }}" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary m-3">Submit</button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    {%endblock%}
+
+    
+</body>
+
+</html>

@@ -1,10 +1,19 @@
 from app import app
 
 from flask import render_template, request, flash, redirect, url_for, session
+from sqlalchemy import func ,or_, and_
 from controllers.models import *
 
 @app.route('/')
 def home():
+    is_logged = 'roles' in session
+    if(is_logged):
+        if('admin' in session['roles']):
+            return redirect(url_for('admin_home'))
+        
+        elif('user' in session['roles']):
+            return redirect(url_for('user_home'))
+        
     return render_template('home.html')
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -31,6 +40,7 @@ def login():
         
         session['email'] = user.email
         session['roles'] = [role.name for role in user.roles]
+        session['user_id'] = user.id
 
         flash('Login successful!', 'success')
         return redirect(url_for('home'))
@@ -63,7 +73,7 @@ def register():
             return redirect(url_for('register'))
 
         role_data = Role.query.filter_by(name='user').first()
-        print(type(role_data))
+        
         user_data = User(email=email, password=password, roles = [role_data], full_name=full_name, address=address, pin_code=pin_code)
 
         db.session.add(user_data)
@@ -102,6 +112,16 @@ def add_new_parking():
         db.session.add(new_parking_lot)
         flash('New parking lot added successfully!', 'success')
         db.session.commit()
+        max_spot = int(maximum_number_of_spots)
+        for i in range(max_spot):
+            spot_lot = ParkingSpot(spot=f'{new_parking_lot.id}_{i+1}',
+                                   lot_id = new_parking_lot.id,
+                                   status = 'A'
+            )
+            db.session.add(spot_lot)
+        db.session.commit()
+        flash('Succesfully Parking added')
+
         
         return redirect('/')    
 
@@ -124,7 +144,7 @@ def edit_parking(parking_lot_id):
 
     return render_template('edit_parking.html', parking_lot=parking_lot)
 
-@app.route('/delete_parking/<int:parking_lot_id>', methods=['POST'])
+@app.route('/delete_parking/<int:parking_lot_id>', methods=['GET'])
 def delete_parking(parking_lot_id):
     parking_lot = ParkingLot.query.get_or_404(parking_lot_id)
     
@@ -159,3 +179,99 @@ def admin_search():
         return render_template('admin_search.html', results=results)
 
     return render_template('admin_search.html')
+
+@app.route('/admin_home', methods=['GET', 'POST'])
+def admin_home():
+    parking_lots = ParkingLot.query.all()
+    return render_template('/admin_home.html', parking_lots=parking_lots)
+
+@app.route('/user_home', methods=['GET', 'POST'])
+def user_home():
+    reservations = Reservation.query.filter_by(user_id=session.get('user_id')).all()
+
+    return render_template('/user_home.html', reservations=reservations)
+
+
+@app.route('/user_search_parking', methods=['GET', 'POST'])
+def user_search_parking():
+    if request.method == 'POST':
+        search_query = request.form.get('search_parking')   
+        print('search query:', search_query)
+        if not search_query:
+            flash('Search query cannot be empty.', 'error')
+            return redirect(url_for('user_search_parking'))
+
+        results = ParkingLot.query.filter(or_(ParkingLot.location.ilike(f'%{search_query}%'),
+                                              ParkingLot.pin_code.ilike(f'%{search_query}%'))).all()
+        
+        if not results:
+            flash('No results found.', 'info')
+            return redirect(url_for('user_search_parking'))
+
+        lot_bundles = []
+        for lot in results:
+            available = ParkingSpot.query.filter_by(lot_id=lot.id, status='A').all()
+            occupied  = ParkingSpot.query.filter_by(lot_id=lot.id, status='O').all()
+
+            lot_bundles.append({
+                "lot": lot,
+                "available_spots": available,
+                "occupied_spots": occupied,
+            })
+
+        print('results found')
+        return render_template('user_search_parking.html', results=results, lot_bundles=lot_bundles)
+    print('results')
+    return render_template('user_search_parking.html')
+
+@app.route('/book_parking/<int:parking_lot_id>', methods=['GET', 'POST'])
+def book_parking(parking_lot_id):
+    parking_lot = ParkingLot.query.get_or_404(parking_lot_id)
+    spot = ParkingSpot.query.filter_by(lot_id=parking_lot.id, status='A').first()
+    if not spot:
+        flash('No available parking spots in this lot.', 'error')
+        return redirect(url_for('user_search_parking'))
+
+    if not parking_lot:
+        flash('Parking lot not found.', 'error')
+        return redirect(url_for('user_search_parking'))
+    
+    if request.method == 'POST':
+        spot = request.form.get('spot')
+        lot_id = request.form.get('lot_id')
+        user_id = session.get('user_id')
+        vehicle_number = request.form.get('vehicle_number')
+
+        if not spot or not lot_id or not user_id or not vehicle_number:
+            flash('All fields are required.', 'error')
+            return redirect(url_for('book_parking', parking_lot_id=parking_lot_id, spot=spot))
+
+        spot = ParkingSpot.query.filter_by(spot=spot, lot_id=lot_id, status='A').first()
+        if not spot:
+            flash('Parking spot is not available.', 'error')
+            return redirect(url_for('book_parking', parking_lot_id=parking_lot_id))
+        
+        spot.status = 'O'
+
+        reservation = Reservation(spot_id=spot.spot, user_id=user_id, parking_cost=float(parking_lot.price), vehicle_number=vehicle_number, parking_timestamp=datetime.utcnow())
+        db.session.add(reservation)
+        db.session.commit()
+        flash('Parking spot booked successfully!', 'success')
+        return redirect(url_for('user_home'))
+    return render_template('book_parking.html', parking_lot=parking_lot, spot=spot)
+
+@app.route('/release_parking/<int:reservation_id>', methods=['POST'])
+def release_parking(reservation_id):
+    reservation = Reservation.query.get_or_404(reservation_id)
+    
+    if reservation.leaving_timestamp:
+        flash('Parking spot already released.', 'error')
+        return redirect(url_for('user_home'))
+
+    reservation.leaving_timestamp = datetime.utcnow()
+    spot = ParkingSpot.query.get(reservation.spot_id)
+    if spot:
+        spot.status = 'A'
+    db.session.commit()
+    flash('Parking spot released successfully!', 'success')
+    return redirect(url_for('user_home'))

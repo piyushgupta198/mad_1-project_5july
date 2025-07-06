@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+{% extends 'index.html' %}
+<body>
+    {% block content %}
+    
+    <div class="jumbotron text-center">
+        <h2>Recent Parking History</h2>
+    </div>
+
+    <div class="container">
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>Parking Location</th>
+                    <th>Spot Number</th>
+                    <th>Vehicle Number</th>
+                    <th>Parking Timestamp</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reservation in reservations %}
+                    <tr>
+                        <td>{{ reservation.spot.lot.location if reservation.spot and reservation.spot.lot else '—' }}</td>
+                        <td>{{ reservation.spot_id }}</td>
+                        <td>{{ reservation.vehicle_number }}</td>
+                        <td>{{ reservation.parking_timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                        <td>
+                            {% if reservation.leaving_timestamp is none %}
+                                <form method="POST"
+                                    action="">
+                                    <button onclick="window.location.href='{/release_parking/}{{ reservation.id }}'" class="btn btn-danger btn-sm">
+                                        Release
+                                    </button>
+                                </form>
+                            {% else %}
+                                <button class="btn btn-secondary btn-sm" disabled>Parked</button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+
+    {%endblock%} 
+</body>
+</html>
+

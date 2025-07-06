@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search</title>
+</head>
+{% include 'index.html' %}
+
+<body>
+    
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-6">
+                <form class="container-fluid" action="/user_search_parking" method="post">
+                    <div class="input-group col-6 me-3">
+                        <input type="text" class="form-control" placeholder="Search Parking by Location or Pin Code" name="search_parking" required>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {% if results %}
+        <div class="container mt-4">
+            <h2>Search Results</h2>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Location</th>
+                        <th>Pin Code</th>
+                        <th>Max Spots</th>
+                        <th>Available Spots</th>
+                        <th>Occupied Spots</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in results %}
+                    <tr>
+                        <td>{{ result.id }}</td>
+                        <td>{{ result.location }}</td>
+                        <td>{{ result.pin_code }}</td>
+                        <td>{{ result.max_spots }}</td>
+                        <td>{{ lot_bundles[loop.index0].available_spots|length }}</td>
+                        <td>{{ lot_bundles[loop.index0].occupied_spots|length }}</td>
+                        <td>
+                            <button class="btn btn-primary" onclick="window.location.href='/book_parking/{{ result.id }}'">Book</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        {% if session.get('search_parking') %}
+            <div class="alert alert-info" role="alert">
+                No results found for "{{ session.get('search_parking') }}".
+            </div>
+        {% endif %}
+    {% endif %}
+
+</body>
+</html>

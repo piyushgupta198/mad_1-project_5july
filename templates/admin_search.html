@@ -22,14 +22,59 @@
                             <option value="location">Location</option>
 
                         </select>
-
-                        <!-- search text -->
-                        <input type="text" class="form-control"
-                            placeholder="Search string…" name="searchBy" required>
+                        <input type="text" class="form-control" name="searchBy" required>
                         <button type="submit" class="btn btn-primary">Submit</button>
                     </div>
                 </form>
             </div>
+        </div>
+    </div>
+
+    {% if  %}
+    <div class="container mt-4">
+        <h2 class="text-center">Search Results</h2>
+        {% if search_results %}
+            <ul class="list-group">
+                {% for result in search_results %}
+                    <li class="list-group-item">
+                        <a href="{{ url_for('admin_spot_view', spot_id=result.id) }}">
+                            Spot ID: {{ result.id }} - Status: {{ 'Available' if result.status == 'A' else 'Occupied' }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+
+    <div class="container mt-2">
+        <h2 class="text-center">Parking Lots</h2>
+        <div class="row">
+            {% for lot in parking_lots %}
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5>Parking {{ lot.id }}</h5>
+                            <a class="text-warning" href="{{url_for('edit_parking',parking_lot_id=lot.id) }}">Edit</a> |
+                            <a href="{{url_for('delete_parking',parking_lot_id=lot.id)}}" class="text-danger">Delete</a>
+                            <p class="mt-2">Occupied: {{ lot.occupied_spots|length }} / {{ lot.max_spots }}</p>
+                            <div class="row">
+                                <div class="d-d-flex flex-wrap">
+                                    <ul>
+                                        {% for spot in lot.spots %}
+
+                                            <button class="slot {{ spot.status }}" onclick="window.location.href='/admin_spot_view/{{ spot.spot  }}'">{{'A' if spot.status == 'A' else 'O' }}</button>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="text-center mt-4">
+            <button class="btn btn-primary" onclick="window.location.href='/add_new_parking'" >+ Add Lot</button>
         </div>
     </div>
 

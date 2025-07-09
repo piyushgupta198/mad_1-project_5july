@@ -170,6 +170,7 @@ def admin_search():
         if search_type == 'user_id':
             results = User.query.filter_by(id=search_query).all()
             print([result.full_name for result in results])
+            
 
         elif search_type == 'location':
             results = ParkingLot.query.filter_by(location=search_query).all()
@@ -187,14 +188,31 @@ def admin_search():
 @app.route('/admin_home', methods=['GET', 'POST'])
 def admin_home():
     parking_lots = ParkingLot.query.all()
-    return render_template('/admin_home.html', parking_lots=parking_lots)
+    
+    lot_bundles = []
+    for lot in parking_lots:
+        available = ParkingSpot.query.filter_by(lot_id=lot.id, status='A').all()
+        occupied  = ParkingSpot.query.filter_by(lot_id=lot.id, status='O').all()
+
+        lot_bundles.append({
+            "lot": lot,
+            "available_spots": available,
+            "occupied_spots": occupied,
+        })
+
+
+    return render_template('/admin_home.html', parking_lots=parking_lots, lot_bundles=lot_bundles)
 
 @app.route('/user_home', methods=['GET', 'POST'])
 def user_home():
     reservations = Reservation.query.filter_by(user_id=session.get('user_id')).all()
-
+    
     return render_template('/user_home.html', reservations=reservations)
 
+@app.route('/admin_view_spot/<string:spot_id>', methods=['GET', 'POST'])
+def admin_view_spot(spot_id):
+    parking_spot = ParkingSpot.query.filter_by(spot=spot_id).first()
+    return render_template('/admin_view_spot.html', parking_spot=parking_spot)
 
 @app.route('/user_search_parking', methods=['GET', 'POST'])
 def user_search_parking():
@@ -293,3 +311,17 @@ def release_parking(reservation_id):
 
 
     return render_template('release_parking.html', reservation=reservation,reservation_id=reservation_id,t=release_time ,cost=cost)
+
+@app.route('/admin_spot_view/<string:spot_id>', methods=['GET'])
+def admin_spot_view(spot_id):
+    spot = ParkingSpot.query.filter_by(spot=spot_id).first()
+    print(spot_id, spot)
+    if not spot:
+        flash('Parking spot not found.', 'error')
+        return redirect(url_for('admin_home'))
+
+    reservation = Reservation.query.filter_by(spot_id=spot.spot).first()
+
+    print(reservation)
+
+    return render_template('admin_spot_view.html', spot=spot, reservation=reservation)

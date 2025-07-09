@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+{% extends 'index.html' %}
+
+<body>
+    {% block content %}
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-6 m-3">
+                <h2>Occupied Parking Spot</h2>
+
+                <form method="get" action="/">
+                    <div class="mb-1.5">
+                        <label for="slot_id" class="form-label">Slot ID</label>
+                        <input type="text" class="form-control" id="slot_id" name="slot_id" value="{{ spot.spot }}" readonly>
+                    </div>
+                    <div class="mb-1.5">
+                        <label for="customer_id" class="form-label">Customer ID</label>
+                        <input type="text" class="form-control" id="customer_id" name="customer_id" value="{{ reservation.user_id }}" required>
+                    </div>
+                    <div class="mb-1.5">
+                        <label for="customer_name" class="form-label">Customer Name</label>
+                        <input type="text" class="form-control" id="customer_name" name="customer_name" value="{{ reservation.user.full_name }}" required>
+                    </div>
+                    <div class="mb-1.5">
+                        <label for="vehicle_number" class="form-label">Vehicle Number</label>
+                        <input type="text" class="form-control" id="vehicle_number" name="vehicle_number" value="{{ reservation.vehicle_number }}" required>
+                    </div>
+                    <div class="mb-1.5">
+                        <label for="time_of_parking" class="form-label">Time of Parking</label>
+                        <input type="text" class="form-control" id="time_of_parking" name="time_of_parking" value="{{ reservation.parking_timestamp.strftime('%Y-%m-%d %H:%M') }}" required>
+                    </div>
+                    <div class="mb-1.5">
+                        <label for="Estimated Cost" class="form-label">Estimated Cost</label>
+                        <input type="text" class="form-control" id="estimated_cost" name="estimated_cost" value="checking" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary m-3">Submit</button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    {% endblock %}
+
+</body>
+</html>

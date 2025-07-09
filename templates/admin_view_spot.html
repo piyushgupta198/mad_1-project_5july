@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+{% include 'index.html' %}
+<body>
+    
+        {% block content %}
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-6 m-3">
+                <h2>View {{ parking_spot.spot }} Spot</h2>
+
+                <form method="post" action="/admin_home" >
+                    <div class="mb-1.5">
+                        <label for="spot_id" class="form-label">Spot ID</label>
+                        <input type="text" class="form-control" id="spot_id" name="spot_id" value="{{ parking_spot.spot }}" required>
+                    </div>
+                    <div class="mb-1.5">
+                        <label for="status" class="form-label">Status</label>
+                        <input type="text" class="form-control" id="status" name="status" value="{{ parking_spot.status }}" required>
+                    </div>
+                        <button type="Cancel" class="btn btn-primary m-3">Cancel</button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    {%endblock%}
+
+</body>
+</html>

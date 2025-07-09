@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <title>Document</title>
+    <title>Home</title>
 
     <style>
         .slot {
@@ -40,12 +40,13 @@
                             <h5>Parking {{ lot.id }}</h5>
                             <a class="text-warning" href="{{url_for('edit_parking',parking_lot_id=lot.id) }}">Edit</a> |
                             <a href="{{url_for('delete_parking',parking_lot_id=lot.id)}}" class="text-danger">Delete</a>
-                            <p class="mt-2">Occupied: {{ lot.occupied }} / {{ lot.max_spots }}</p>
+                            <p class="mt-2">Occupied: {{ lot_bundles[loop.index0].occupied_spots|length }} / {{ lot_bundles[loop.index0].available_spots|length }}</p>
                             <div class="row">
                                 <div class="d-d-flex flex-wrap">
                                     <ul>
                                         {% for spot in lot.spots %}
-                                            <a href>{{'A' if spot.status == 'A' else 'O' }}   </a>
+
+                                            <button class="slot {{ spot.status }}" onclick="window.location.href='/admin_view_spot/{{ spot.spot  }}'">{{'A' if spot.status == 'A' else 'O' }}</button>
                                         {% endfor %}
                                     </ul>
                                 </div>

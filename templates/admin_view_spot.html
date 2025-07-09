@@ -20,8 +20,11 @@
                         <input type="text" class="form-control" id="spot_id" name="spot_id" value="{{ parking_spot.spot }}" required>
                     </div>
                     <div class="mb-1.5">
-                        <label for="status" class="form-label">Status</label>
-                        <input type="text" class="form-control" id="status" name="status" value="{{ parking_spot.status }}" required>
+                        {% if parking_spot.status == 'O' %}
+                            <a href="/admin_spot_view/{{ parking_spot.spot }}" class="btn btn-primary m-3">{{parking_spot.status}}</a>
+                        {%else%}
+                            <a class='btn btn-primary m-3 col-2'>Aavailable</a>
+                        {%endif%}
                     </div>
                         <button type="Cancel" class="btn btn-primary m-3">Cancel</button>
                 </form>

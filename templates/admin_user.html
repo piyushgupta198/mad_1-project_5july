@@ -9,29 +9,31 @@
 
 <body>
     <h2>Registered Users</h2>
-    <table class="table table-striped table-bordered ">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Email</th>
-                <th>Full Name</th>
-                <th>Address</th>
-                <th>Pin Code</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for user in users %}
-            <tr>
-                <td>{{ user.id }}</td>
-                <td>{{ user.email }}</td>
-                <td>{{ user.full_name }}</td>
-                <td>{{ user.address }}</td>
-                <td>{{ user.pin_code }}</td>
-            {% endfor %}
-                <td>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-</body>
+    <p><i>Here is the list of all registered users in the system.</i></p>
+    <div class="container mt-4 d-flex justify-content-center">
+        
+        <table class="table table-striped table-bordered ">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Email</th>
+                    <th>Full Name</th>
+                    <th>Address</th>
+                    <th>Pin Code</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.full_name }}</td>
+                    <td>{{ user.address }}</td>
+                    <td>{{ user.pin_code }}</td>
+                {% endfor %}
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    </body>
 </html>

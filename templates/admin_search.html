@@ -5,21 +5,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search</title>
+    <style>
+        .slot {
+            width: 30px;
+            height: 30px;
+            margin: 5px;
+            text-align: center;
+            line-height: 30px;
+            border-radius: 4px;
+        }
+        .slot.A {
+            background-color: #a2f3a2;
+            text-align: center;
+        }
+        .slot.O {
+            background-color: #f3a2a2;
+            text-align: center;
+        }
+    </style>
+
+
 </head>
 {% include 'index.html' %}
 
 <body>
-
     <div class="container-fluid">
         <div class="row justify-content-center">
             <div class="col-6">
                 <form class="container-fluid" action="/admin_search" method="post">
                     <div class="input-group col-6 me-3">
 
-                        <select class="btn btn-outline-secondary" name="search_By" required>
+                        <select class="border" name="search_By" required>
 
                             <option value="user_id">User ID</option>
                             <option value="location">Location</option>
+                            <option value="pin_code">Pin Code</option>
 
                         </select>
                         <input type="text" class="form-control" name="searchBy" required>
@@ -29,40 +49,53 @@
             </div>
         </div>
     </div>
-
-    {% if  %}
-    <div class="container mt-4">
-        <h2 class="text-center">Search Results</h2>
-        {% if search_results %}
-            <ul class="list-group">
-                {% for result in search_results %}
-                    <li class="list-group-item">
-                        <a href="{{ url_for('admin_spot_view', spot_id=result.id) }}">
-                            Spot ID: {{ result.id }} - Status: {{ 'Available' if result.status == 'A' else 'Occupied' }}
-                        </a>
-                    </li>
+    <p><i>Search by User ID, Location, Pin Code</i></p>
+    <br><br>
+    {% if search_type == 'user_id' %}
+        
+        <div class="container mt-4 d-flex justify-content-center">
+        
+        <table class="table table-striped table-bordered ">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Email</th>
+                    <th>Full Name</th>
+                    <th>Address</th>
+                    <th>Pin Code</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in results %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.full_name }}</td>
+                    <td>{{ user.address }}</td>
+                    <td>{{ user.pin_code }}</td>
                 {% endfor %}
-            </ul>
-        {% endif %}
+                </tr>
+            </tbody>
+        </table>
     </div>
+    {% else %}
 
-    <div class="container mt-2">
-        <h2 class="text-center">Parking Lots</h2>
+        <div class="container mt-2">
         <div class="row">
-            {% for lot in parking_lots %}
+            {% for lot in results %}
                 <div class="col-md-4 mb-4">
                     <div class="card">
                         <div class="card-body">
                             <h5>Parking {{ lot.id }}</h5>
                             <a class="text-warning" href="{{url_for('edit_parking',parking_lot_id=lot.id) }}">Edit</a> |
                             <a href="{{url_for('delete_parking',parking_lot_id=lot.id)}}" class="text-danger">Delete</a>
-                            <p class="mt-2">Occupied: {{ lot.occupied_spots|length }} / {{ lot.max_spots }}</p>
+                            <p class="mt-2">Occupied: {{ lot_bundles[loop.index0].occupied_spots|length }} / {{ lot_bundles[loop.index0].available_spots|length }}</p>
                             <div class="row">
                                 <div class="d-d-flex flex-wrap">
                                     <ul>
                                         {% for spot in lot.spots %}
 
-                                            <button class="slot {{ spot.status }}" onclick="window.location.href='/admin_spot_view/{{ spot.spot  }}'">{{'A' if spot.status == 'A' else 'O' }}</button>
+                                            <button class="slot {{ spot.status }}" onclick="window.location.href='/admin_view_spot/{{ spot.spot  }}'">{{'A' if spot.status == 'A' else 'O' }}</button>
                                         {% endfor %}
                                     </ul>
                                 </div>
@@ -72,12 +105,9 @@
                 </div>
             {% endfor %}
         </div>
-
-        <div class="text-center mt-4">
-            <button class="btn btn-primary" onclick="window.location.href='/add_new_parking'" >+ Add Lot</button>
-        </div>
     </div>
 
+    {% endif %}
 
 </body>
 

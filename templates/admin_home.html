@@ -31,13 +31,14 @@
 
 <body>
     <div class="container mt-2">
-        <h2 class="text-center">Parking Lots</h2>
+        <h2 class="text-center mb-4"><u>Parking Lots</u></h2>
         <div class="row">
             {% for lot in parking_lots %}
                 <div class="col-md-4 mb-4">
                     <div class="card">
                         <div class="card-body">
                             <h5>Parking {{ lot.id }}</h5>
+                            <h5><i>Location: {{ lot.location }}</i></h5>
                             <a class="text-warning" href="{{url_for('edit_parking',parking_lot_id=lot.id) }}">Edit</a> |
                             <a href="{{url_for('delete_parking',parking_lot_id=lot.id)}}" class="text-danger">Delete</a>
                             <p class="mt-2">Occupied: {{ lot_bundles[loop.index0].occupied_spots|length }} / {{ lot_bundles[loop.index0].available_spots|length }}</p>
@@ -58,7 +59,7 @@
         </div>
 
         <div class="text-center mt-4">
-            <button class="btn btn-primary" onclick="window.location.href='/add_new_parking'" >+ Add Lot</button>
+            <button class="btn btn-dark" onclick="window.location.href='/add_new_parking'" >+ Add Lot</button>
         </div>
     </div>
 

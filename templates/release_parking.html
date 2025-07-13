@@ -15,7 +15,7 @@
     <div class="container-fluid">
         <div class="row justify-content-center">
             <div class="col-6 m-3">
-                <h1>Book {{ reservation.spot_id }} Parking</h1>
+                <h2><u>Release Parking</u></h2>
 
 
                 <form method="post" action="/release_parking/{{ reservation_id }}">
@@ -39,9 +39,11 @@
                     <div class="mb-1.5">
                         <label for="total_cost" class="form-label">Total Cost</label>
                         <input type="text" class="form-control" id="total_cost" name="total_cost" value="{{ cost }}" required>
+                        <p class="text-muted">Cost is calculated based on the parking time and hourly rate.</p>
+                        <p class="text-muted">Hourly rate is {{ reservation.parking_cost }}.</p>
                     </div>
 
-                    <button type="submit" class="btn btn-primary m-3">Submit</button>
+                    <button type="submit" class="btn btn-dark m-3">Release</button>
                 </form>
 
             </div>

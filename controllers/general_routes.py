@@ -140,8 +140,21 @@ def edit_parking(parking_lot_id):
         parking_lot.address = request.form.get('address')
         parking_lot.pin_code = request.form.get('pin_code')
         parking_lot.price = request.form.get('price')
-        parking_lot.max_spots = request.form.get('max_spots')
 
+        current_spots = ParkingSpot.query.filter_by(lot_id=parking_lot.id).all()
+        
+        spot_count = request.form.get('max_spots')
+        if int(spot_count) > len(current_spots):
+            # Add new spots if the new max_spots is greater than the current max_spots
+            for i in range(len(current_spots), int(spot_count)):
+                new_spot = ParkingSpot(spot=f'{parking_lot.id}_{i+1}', lot_id=parking_lot.id, status='A')
+                db.session.add(new_spot)
+                db.session.commit()
+            parking_lot.max_spots = int(spot_count)
+        elif int(spot_count) < len(current_spots):
+            # Remove excess spots if the new max_spots is less than the current max_spots
+            flash('Warning: Reducing the number of spots will delete existing spots.', 'warning')
+            
         db.session.commit()
         flash('Parking lot updated successfully!', 'success')
         return redirect('/')
@@ -151,7 +164,11 @@ def edit_parking(parking_lot_id):
 @app.route('/delete_parking/<int:parking_lot_id>', methods=['GET'])
 def delete_parking(parking_lot_id):
     parking_lot = ParkingLot.query.get_or_404(parking_lot_id)
-    
+    spot_ids = [spot.id for spot in parking_lot.spots]
+    if spot_ids:
+        reservations = Reservation.query.filter(Reservation.spot_id.in_(spot_ids)).all()
+        for reservation in reservations:
+            db.session.delete(reservation)
     db.session.delete(parking_lot)
     db.session.commit()
     
@@ -163,6 +180,7 @@ def admin_search():
     if request.method == 'POST':
         search_query = request.form.get('searchBy')   
         search_type  = request.form.get('search_By')  
+        lot_bundles = []
         if not search_query:
             flash('Search query cannot be empty.', 'error')
             return redirect(url_for('admin_search'))
@@ -172,18 +190,6 @@ def admin_search():
 
         elif search_type == 'location':
             results = ParkingLot.query.filter_by(location=search_query).all()
-    
-        elif search_type == 'pin_code':
-            results = ParkingLot.query.filter_by(pin_code=search_query).all()
-            
-        else:
-            results = []
-        
-        if not results:
-            flash('No results found.', 'info')
-            return redirect(url_for('admin_search'))
-
-        if search_type in ['location', 'pin_code']:
             lot_bundles = []
             for lot in results:
                 available = ParkingSpot.query.filter_by(lot_id=lot.id, status='A').all()
@@ -194,6 +200,25 @@ def admin_search():
                 "available_spots": available,
                 "occupied_spots": occupied,
             })
+    
+        elif search_type == 'pin_code':
+            results = ParkingLot.query.filter_by(pin_code=search_query).all()
+            lot_bundles = []
+            for lot in results:
+                available = ParkingSpot.query.filter_by(lot_id=lot.id, status='A').all()
+                occupied  = ParkingSpot.query.filter_by(lot_id=lot.id, status='O').all()
+
+            lot_bundles.append({
+                "lot": lot,
+                "available_spots": available,
+                "occupied_spots": occupied,
+            })
+        else:
+            results = []
+        
+        if not results:
+            flash('No results found.', 'info')
+            return redirect(url_for('admin_search'))
 
         return render_template('admin_search.html', results=results, search_type=search_type, search_query=search_query, lot_bundles=lot_bundles)
 
@@ -220,7 +245,12 @@ def admin_home():
 @app.route('/user_home', methods=['GET', 'POST'])
 def user_home():
     reservations = Reservation.query.filter_by(user_id=session.get('user_id')).all()
-    
+    spot_list = [r.spot_id for r in reservations]
+    if not spot_list:
+        print('spot reservationssssss:', [r.spot_id for r in reservations])
+        flash('No reservations found.', 'info')
+        return render_template('/user_home.html', reservations=[])
+    print('spot reservationsmmmm:', spot_list)
     return render_template('/user_home.html', reservations=reservations)
 
 @app.route('/admin_view_spot/<string:spot_id>', methods=['GET', 'POST'])
@@ -306,9 +336,10 @@ def release_parking(reservation_id):
     start_dt = datetime.strptime(parking_time, fmt)
     end_dt   = datetime.strptime(release_time, fmt)
 
-    delta = end_dt - start_dt                 
-    hours = delta.total_seconds() / 3600      
-    cost  = hours * 50
+    delta = end_dt - start_dt
+    hours = delta.total_seconds() / 3600
+    hourly_cost = float(reservation.parking_cost)
+    cost  = hours * hourly_cost
     cost = math.ceil(cost)
 
     if request.method=='POST':
@@ -322,7 +353,6 @@ def release_parking(reservation_id):
             db.session.commit()
         flash('Parking released successfully!', 'success')
         return redirect(url_for('user_home'))
-
 
     return render_template('release_parking.html', reservation=reservation,reservation_id=reservation_id,t=release_time ,cost=cost)
 

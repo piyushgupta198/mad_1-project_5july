@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+
 </head>
 {% include 'index.html' %}
 <body>
@@ -12,21 +13,26 @@
     <div class="container-fluid">
         <div class="row justify-content-center">
             <div class="col-6 m-3">
-                <h2>View {{ parking_spot.spot }} Spot</h2>
+                <div class="header text-center mb-4">
+                    <h2><u> View {{ parking_spot.location }} {{ parking_spot.spot }} Spot</u></h2>
+                </div>
 
                 <form method="post" action="/admin_home" >
-                    <div class="mb-1.5">
+                    <div class="mt-4 mb-1.5">
                         <label for="spot_id" class="form-label">Spot ID</label>
-                        <input type="text" class="form-control" id="spot_id" name="spot_id" value="{{ parking_spot.spot }}" required>
+                        <input type="text" class="form-control" id="spot_id" name="spot_id" value="{{ parking_spot.spot }}" readonly>
                     </div>
+
                     <div class="mb-1.5">
+                        <label for="spot_status" class="form-label">Spot Status: </label>
+
                         {% if parking_spot.status == 'O' %}
-                            <a href="/admin_spot_view/{{ parking_spot.spot }}" class="btn btn-primary m-3">{{parking_spot.status}}</a>
+                            <a href="/admin_spot_view/{{ parking_spot.spot }}" class="btn btn-dark m-3">{{parking_spot.status}}</a>
                         {%else%}
-                            <a class='btn btn-primary m-3 col-2'>Aavailable</a>
+                            <a class='btn btn-secondary m-3 col-2'>Available</a>
                         {%endif%}
                     </div>
-                        <button type="Cancel" class="btn btn-primary m-3">Cancel</button>
+                        <button type="Cancel" class="btn btn-dark m-3">Cancel</button>
                 </form>
 
             </div>

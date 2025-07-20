@@ -6,6 +6,8 @@ from controllers.models import *
 from datetime import datetime
 import math
 from zoneinfo import ZoneInfo
+import matplotlib.pyplot as plt
+from collections import Counter
 
 
 @app.route('/')
@@ -376,6 +378,62 @@ def admin_spot_view(spot_id):
     hours = delta.total_seconds() / 3600      
     cost  = hours * 50
     cost = math.ceil(cost)
-    
-
     return render_template('admin_spot_view.html', spot=spot, reservation=reservation, cost=cost)
+
+@app.route('/user_summary', methods=['GET'])
+def user_summary():
+    user_id = session.get('user_id')
+
+    reservations = Reservation.query.filter_by(user_id=user_id).all()
+    
+    if not reservations:
+        flash('No reservations found.', 'info')
+        return render_template('user_summary.html')
+    
+    spot_ids = [r.spot_id for r in Reservation.query.all() if r.spot_id is not None]
+    count = Counter(spot_ids)
+    
+    spots = list(count.keys())
+    usage_counts = list(count.values())
+    print("heloo this is ",spots, usage_counts)
+    plt.figure(figsize=(4,3))
+    plt.bar(spots, usage_counts, color=['lightgreen', 'skyblue', 'lightcoral', 'mediumpurple'])
+    plt.xlabel('Parking Spot')
+    plt.ylabel('Number of Uses')
+    plt.title('Summary on already used parking spots')
+    plt.tight_layout()
+    plt.savefig('static/parking_histogram.png')
+    plt.close()
+    return render_template('user_summary.html')
+
+@app.route('/admin_summary', methods=['GET'])
+def admin_summary():
+    parking_lots = ParkingLot.query.all()
+    lot_bundles = []
+    
+    for lot in parking_lots:
+        available = ParkingSpot.query.filter_by(lot_id=lot.id, status='A').all()
+        occupied  = ParkingSpot.query.filter_by(lot_id=lot.id, status='O').all()
+
+        lot_bundles.append({
+            "lot": lot,
+            "available_spots": available,
+            "occupied_spots": occupied,
+        })
+    print('lot bundles:', lot_bundles)
+    total_available = sum(len(bundle["available_spots"]) for bundle in lot_bundles)
+    print(f"Total available spots: {total_available}")
+    total_occupied = sum(len(bundle["occupied_spots"]) for bundle in lot_bundles)
+    print(f"Total occupied spots: {total_occupied}")
+
+    plt.figure(figsize=(5,4))
+    plt.bar('Available',total_available, color='lightgreen', label='Available Spots')
+    plt.bar('Occupied', total_occupied, color='skyblue', label='Occupied Spots')
+    plt.xlabel('Parking Lot')
+    plt.ylabel('Number of Uses')
+    plt.title('Summary on parking lots')
+    plt.tight_layout()
+    plt.savefig('static/parking_lot_summary.png')
+    plt.close()
+
+    return render_template('admin_summary.html')

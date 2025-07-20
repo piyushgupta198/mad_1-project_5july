@@ -24,7 +24,7 @@
             </li>
             
             <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href='summary'>Summary</a>
+            <a class="nav-link active" aria-current="page" href="{{ url_for('admin_summary') }}">Summary</a>
             </li>
  
           {% endif %}
@@ -38,7 +38,7 @@
             </li>
 
             <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="#">Summary</a>
+            <a class="nav-link active" aria-current="page" href="{{ url_for('user_summary') }}">Summary</a>
             </li>
 
           {% endif %}
